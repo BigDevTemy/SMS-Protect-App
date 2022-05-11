@@ -25,8 +25,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import useStore from "./store";
 import { PermissionsAndroid, Platform } from "react-native";
 import Request from "./components/RequestPerm";
+import Config from "./config";
+import CryptoES from "crypto-es";
+import { RSA } from "react-native-rsa-native";
 
 import * as ReadSms from "react-native-read-sms/ReadSms";
+import axios from "axios";
 
 // if (Platform.OS === 'web') { //TODO: render web version
 
@@ -148,6 +152,50 @@ function HomeScreen({ navigation }) {
   //   }
   // );
 
+  const postSMS = async (payload) => {
+    const encrypted = CryptoES.AES.encrypt(
+      payload || "Message",
+      "Secret Passphrase"
+    );
+    console.log(encrypted.key.toString()); // 74eb593087a982e2a6f5dded54ecd96d1fd0f3d44a58728cdcd40c55227522223
+    console.log(encrypted.iv.toString()); // 7781157e2629b094f0e3dd48c4d786115
+    console.log(encrypted.toString()); // 73e54154a15d1beeb509d9e12f1e462a0
+
+    const hashed = CryptoES.HmacSHA256(encrypted.toString(), Config.PUBLIC_KEY);
+    console.log(hashed.toString());
+
+    // RSA.encrypt("my_secret_message", Config.PUBLIC_KEY).then(
+    //   (encodedMessage) => {
+    //     console.log(`the encoded message is ${encodedMessage}`);
+    //     // RSA.decrypt(encodedMessage, keys.private).then((decryptedMessage) => {
+    //     //   console.log(`The original message was ${decryptedMessage}`);
+    //     // });
+    //   }
+    // );
+
+    const response = await axios
+      .post(`https://sms-backend-ng.herokuapp.com/classify`, {
+        key: encrypted.key.toString(CryptoES.enc.Base64),
+        iv: encrypted.iv.toString(CryptoES.enc.Base64),
+        message: hashed.toString(CryptoES.enc.Base64),
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    // const response = await axios
+    //   .post(`https://sms-backend-ng.herokuapp.com/classify`, {
+    //     key: "gKBW2okM8nh7YJvaeJel2236SigokTjgfkWu1/WkgqeF9359pZMPRMA3OINrEx0L48OKrZ2QBy9HROckl4eZgYEJMTK4PjOwCr/LX3DmB5ZbrvsFd1E7Wxk5rrxhtsLybPzEnF+2dCIVabH/ckAMMG44Xd1D7hdWL8xODHCpzQA+MX16vNxpgCpNiuqHzqlFCTqXPmvaxrt1cmPRs4ZrvsWgv/DYBpE7Ai0g7gLpDO4yS//fdMMXbbERedGAPxKPiCTRiAqxf+TYy1WlyOUC2FRaiUuLVWulUv1R6191bIv8uR5p7X87OaX101v0CxjVOprHK3PYOLnT0MtM5Aa1VKcFl/331Guaxz7uGbrFOqnUWEb4yZTSrdgAvS4yI2o/a2GroL4NEjb7yYQUeHh5BVVOTmkWrG4ZX0QAn58eCXsZltSE1cjcBOfbHhK4dPce5ycemwnCr84QhGy0fK08/zWj+m1t7r1rwmeLYTzScrRuGRBuYNsTHexyyfFUIT+A7JrnC1JxtniwnelPzvSJgHR5PUk75AsmljxH/uguBpWoSl0MINd8ZkLW/NAMIOkPMvSzHUC3iA+EZkJymgmaq0tGmDI/X5O9NK79jvsrHAHkwDVDjGAngA68Sxro6+flPs1cviLP0V0oQBXjnUDJtu1FIKPasbGb3IIIqtCmrzE=",
+    //     iv: "oyE9N786v2dlaYewDbNzRe7tCSUNesROkOQs6a1lGkk5aKHhuFpJbQMQ9NGnfMH3RLlt4lOFWwj3sCpaZ4nUNgOBx2hMcX1wsp6+uQVy6WKMqhrWIaEjuw9dEs9Gk27hpm4VcXSreo2LlXvKM0GVl/Zs9w3r4Aplx8sHo8z+gm/Tks+VWUZ/4XOU73X6plu9j76mJKC2JD5QXU0ILJp4/T1k2woxtsul2GG7Kgw35s0GYZxN9e+/pznMAIxDc1wmjMy+nRtZtUumFkjATBtMsyZZPocGGsutJtlSCCfh2JzEOBOr3DY3wLEUFElBRNvwcXTAnvPYlEsxDVLMtKyur6gIaLEj5W4g366Gd8MvIVCoXTlVUHamRMwD3P0qvG5Pk9M4s06etP2h8obchG4NXpQO1A9HP8htn7sAwsudxIAwnzfx8H878bexEWBMaflUNCLuVTkfnbr9log5ynP+cmHzm2ZSoENGE/iiPotC2SRHdli+gi4szczfENS9WKcxZPjAnFkr4zS5GHy6GL3Aus3qAcjf9NK8YjKSLw3oi9wUazsA0KWTpxkznW3qN2/8l0R0D1W/HvarEe+Y4T0zap1IrGwYa1k2qsYRaQxVXw/UMLI8fN0ZsWX3bRVbbWxt/4FQ4nzJZXNZg/8HZZXLChY4Ny3Oe7GQqVfQSmXKh5E=",
+    //     message:
+    //       "jl3A64sEbA3sMnv+wHt1szQPnYFdC8Aqs8XUCV8QhrkiRdoDtRdYk7cP384gK/xElOk5xS89DDrJkddaXYoYRq16IB8GUT5v72Jw0gfOs3D1rMMazXYlySiImzWmx33c+WSlQjN6OfaWeOrVbGAhk/eUNTgsNZSc88D0kSjhC2VGloTRaArVyu33fl3MVJYisPW2DODjHMBzBSlhrpFwSGp3wWuGAiZS52H71PaIRESADBpCsbc654zbKhLb8EBM",
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
+    console.log(response?.data);
+    return response;
+  };
+
   const startReadSMS = async () => {
     const hasPermission = await ReadSms.requestReadSMSPermission();
     console.log("hasPermission: ", hasPermission);
@@ -157,6 +205,7 @@ function HomeScreen({ navigation }) {
           if (status == "success") {
             console.log("Great!! you have received new sms:", sms);
           }
+          postSMS();
         });
       } catch (error) {
         console.log("error: ", error);

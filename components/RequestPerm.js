@@ -18,7 +18,8 @@ const Request = () => {
     );
   }, []);
 
-  return <Text>Permission!</Text>;
+  //TODOchange the text value
+  return <Text></Text>;
 };
 
 export default Request;

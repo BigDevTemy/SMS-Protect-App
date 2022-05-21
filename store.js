@@ -2,52 +2,32 @@ import create from "zustand";
 
 const useStore = create((set) => ({
   smslist: [
-    {
-      title: "SMS 1",
-      body: "This is a test message",
-      date: "2020-01-01",
-      id: 1,
-    },
-    {
-      title: "SMS 2",
-      body: "This is a test message",
-      date: "2020-01-01",
-      id: 2,
-    },
-    {
-      title: "SMS 3",
-      body: "This is a test message",
-      date: "2020-01-01",
-      id: 3,
-    },
-    {
-      title: "SMS 4",
-      body: "This is a test message",
-      date: "2020-01-01",
-      id: 4,
-    },
-    {
-      title: "SMS 5",
-      body: "This is a test message",
-      date: "2020-01-01",
-      id: 5,
-    },
-    {
-      title: "SMS 6",
-      body: "This is a test message",
-      date: "2020-01-01",
-      id: 6,
-    },
-    {
-      title: "SMS 7",
-      body: "This is a test message",
-      date: "2020-01-01",
-      id: 7,
-    },
+    // {
+    //   _id: 1,
+    //   thread_id: 2,
+    //   address: "6505551212",
+    //   date: 1653149269528,
+    //   date_sent: 1653149263000,
+    //   protocol: 0,
+    //   read: 0,
+    //   status: -1,
+    //   type: 1,
+    //   reply_path_present: 0,
+    //   body: "Android is always a sweet treat!",
+    //   locked: 0,
+    //   sub_id: 1,
+    //   error_code: 0,
+    //   creator: "com.google.android.apps.messaging",
+    //   seen: 1,
+    // },
   ],
   selectedSms: null,
   bears: 0,
-  setSms: (sms) => set((state) => ({ selectedSms: state.smslist[sms.id] })),
+  listSms: (sms) =>
+    set(() => {
+      return { smslist: sms };
+    }),
+  setSms: (sms) => set((state) => ({ selectedSms: state.smslist[sms._id] })),
 }));
 
 export default useStore;

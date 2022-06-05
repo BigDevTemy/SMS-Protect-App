@@ -24,10 +24,13 @@ const useStore = create((set) => ({
   selectedSms: null,
   bears: 0,
   listSms: (sms) =>
-    set(() => {
+    set((state) => {
       return { smslist: sms };
     }),
-  setSms: (sms) => set((state) => ({ selectedSms: state.smslist[sms._id] })),
+  setSms: (sms) =>
+    set((state) => {
+      return { selectedSms: sms };
+    }),
 }));
 
 export default useStore;

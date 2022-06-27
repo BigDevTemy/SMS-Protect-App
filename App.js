@@ -71,54 +71,74 @@ const returnShade = (id = 0) => {
   if (id % 4 === 3) return "purple.400";
 };
 
-const postSMS = async (payload) => {
-  const encrypted = CryptoES.AES.encrypt(
-    payload || "Message",
-    "Secret Passphrase"
-  );
+const postSMS = async (load) => {
+  // console.log("load", load);
+  const sms = load[0];
+  console.log("sms", sms);
+  const payload = sms.body;
+  // const encrypted = CryptoES.AES.encrypt(payload);
+  // const payload = "who let the dogs out";
+
+  const ENC_KEY = "bf3c199c2470cb477d907b1e0917c17b"; // set random encryption key
+  const IV = "5183666c72eec9e4"; // set random initialisation vector
+  // ENC_KEY and IV can be generated as crypto.randomBytes(32).toString('hex');
+
+  // console.log("try hex rand", forge.random.getBytesSync(32).toString("hex"));
+
+  var encrypt = (val) => {
+    let cipher = crypto.createCipheriv("aes-256-cbc", ENC_KEY, IV);
+    let encrypted = cipher.update(val, "utf8", "base64");
+    encrypted += cipher.final("base64");
+    return encrypted;
+  };
+
+  var decrypt = (encrypted) => {
+    let decipher = crypto.createDecipheriv("aes-256-cbc", ENC_KEY, IV);
+    let decrypted = decipher.update(encrypted, "base64", "utf8");
+    return decrypted + decipher.final("utf8");
+  };
+
+  const encrypted_key = encrypt(payload);
+  console.log(decrypt(encrypted_key));
 
   const pub2 = forge.pki.publicKeyFromPem(`-----BEGIN PUBLIC KEY-----
-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAsf/kBdGVPGsDY8/PEo8w
-K/CIlp/vqPUqdao+1RDMlLUOeLJklMP+tWhh1MkrkEVZUwaU1TaPiv5g9xp4NJ4V
-va6fteN7LbDP53+G/yh2NDZltRXrqJXz/dTORPoZLqQ+uUtHkNwwdTVA7UKpnTuH
-4DzByqBpGLE6v9AEGg3dA9D9H6eUxPtzlLX2E0E6pDn6nGlRfG4+pU41O9V/XNLQ
-5oCiny1KxVq8blxAUR/KGjuuMSPL9hos3Oy1DATgY7KMAW/Zw8xE99CQptFe3RA+
-XS4R2Yr8AepUW1bi+wSOCTzzFUFaGVh7PEktqSAJTHTmeCi5+knIBm/v+Dh0wxqd
-Gzqn9/uVKsJxSoeMDxvk53he67p0dlrlwP1GztPhW8dkTF5ZVeC4nuj3zBeeaull
-1DIv+Bmo+dFBctnjTmd/JUgHiUfDT3jDU7nVW2vb5FV25Z4kvCgSuCok5rnQlwTX
-ZtGzBiWEXiDpnUdMswZ8PQ8kP7DbMDmHjIfcnQAPfz8DKxdcJ2lgHEWOFfVgR1s7
-kopNfJwGFRQQeRuEFRrhkPsOkZjHzq0gLWB4KTYyRALZaCJo6TeebZOoerAfPo1+
-hKrxLd7OZkzOQsc7fWRM2IRLsv0tV+OR9U+pmFQ3BMuiI5Q2Sel/fSXvbn5O660/
-ZONyC6f1hbrez6WPZjZwxksCAwEAAQ==
------END PUBLIC KEY-----
-`);
+  MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAsf/kBdGVPGsDY8/PEo8w
+  K/CIlp/vqPUqdao+1RDMlLUOeLJklMP+tWhh1MkrkEVZUwaU1TaPiv5g9xp4NJ4V
+  va6fteN7LbDP53+G/yh2NDZltRXrqJXz/dTORPoZLqQ+uUtHkNwwdTVA7UKpnTuH
+  4DzByqBpGLE6v9AEGg3dA9D9H6eUxPtzlLX2E0E6pDn6nGlRfG4+pU41O9V/XNLQ
+  5oCiny1KxVq8blxAUR/KGjuuMSPL9hos3Oy1DATgY7KMAW/Zw8xE99CQptFe3RA+
+  XS4R2Yr8AepUW1bi+wSOCTzzFUFaGVh7PEktqSAJTHTmeCi5+knIBm/v+Dh0wxqd
+  Gzqn9/uVKsJxSoeMDxvk53he67p0dlrlwP1GztPhW8dkTF5ZVeC4nuj3zBeeaull
+  1DIv+Bmo+dFBctnjTmd/JUgHiUfDT3jDU7nVW2vb5FV25Z4kvCgSuCok5rnQlwTX
+  ZtGzBiWEXiDpnUdMswZ8PQ8kP7DbMDmHjIfcnQAPfz8DKxdcJ2lgHEWOFfVgR1s7
+  kopNfJwGFRQQeRuEFRrhkPsOkZjHzq0gLWB4KTYyRALZaCJo6TeebZOoerAfPo1+
+  hKrxLd7OZkzOQsc7fWRM2IRLsv0tV+OR9U+pmFQ3BMuiI5Q2Sel/fSXvbn5O660/
+  ZONyC6f1hbrez6WPZjZwxksCAwEAAQ==
+  -----END PUBLIC KEY-----
+  `);
 
-  console.log({
-    key: forge.util.encode64(
-      pub2.encrypt(encrypted.key.toString(), "RSAES-PKCS1-V1_5")
-    ),
-    iv: forge.util.encode64(
-      pub2.encrypt(encrypted.iv.toString(), "RSAES-PKCS1-V1_5")
-    ),
-    message: encrypted.toString("base64"),
-  });
+  const reqData = {
+    key: forge.util.encode64(pub2.encrypt(ENC_KEY, "RSA-OAEP")),
+    iv: forge.util.encode64(pub2.encrypt(IV, "RSA-OAEP")),
+    message: encrypted_key,
+  };
 
   const responsed = await axios
-    .post(`https://sms-backend-ng.herokuapp.com/classify`, {
-      key: forge.util.encode64(
-        pub2.encrypt(encrypted.key.toString(), "RSAES-PKCS1-V1_5")
-      ),
-      iv: forge.util.encode64(
-        pub2.encrypt(encrypted.iv.toString(), "RSAES-PKCS1-V1_5")
-      ),
-      message: encrypted.toString("base64"),
-    })
+    .post(
+      `https://sms-protect-backend-jhelccjf2q-ew.a.run.app/classify`,
+      reqData
+    )
     .catch((err) => {
-      console.log("resd2", err);
+      console.log("resd2 err", err);
     });
-  console.log("resd2", responsed);
-  // return response;
-  return "response";
+
+  if ((responsed.data.classification = "1")) {
+    console.log("this is a spam message", responsed.data);
+    // return true;
+    return { ...sms, spam: true };
+  }
+  console.log(responsed);
+  return sms;
 };
 
 // extend the theme
@@ -132,10 +152,6 @@ function HomeScreen({ navigation }) {
   const listSms = useStore((state) => state.listSms);
 
   useEffect(() => {
-    // fs.readFileSync("./PUBLIC_KEY.pem", "utf8");
-    // const reader = RNFS.readDir("./PUBLIC_KEY.pem");
-    // console.log(reader);
-    postSMS();
     SmsAndroid.list(
       JSON.stringify({
         box: "",
@@ -144,91 +160,19 @@ function HomeScreen({ navigation }) {
       (fail) => {
         console.log("Failed with this error: " + fail);
       },
-      (count, smsList) => {
+      async (count, smsList) => {
+        const allSms = JSON.parse(smsList);
+        const sms = await postSMS(allSms);
+        console.log("sms: ", sms);
         console.log("Count: ", count);
-        // console.log("List: ", smsList);
-        setArr(JSON.parse(smsList));
 
-        listSms(JSON.parse(smsList));
-        var arr = JSON.parse(smsList);
+        const foundIndex = allSms.findIndex((x) => x._id == sms._id);
+        allSms[foundIndex] = sms;
 
-        // arr.forEach(function (object) {
-        //   console.log("Object: " + object);
-        //   console.log("-->" + object.date);
-        //   console.log("-->" + object.body);
-        // });
+        listSms(allSms);
       }
     );
   }, [newupdate]);
-
-  // result = smsListo.reduce(function (r, a) {
-  //   r[a.address] = r[a.address] || [];
-  //   r[a.address].push(a);
-  //   return r;
-  // }, Object.create(null));
-
-  // This is the data we want to encrypt
-  // const data = "my secret data";
-
-  // const encryptedData = crypto.publicEncrypt(
-  //   {
-  //     key: Config.publicKey,
-  //     padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-  //     oaepHash: "sha256",
-  //   },
-  //   // We convert the data string to a buffer using `Buffer.from`
-  //   Buffer.from(data)
-  // );
-
-  // // The encrypted data is in the form of bytes, so we print it in base64 format
-  // // so that it's displayed in a more readable form
-  // console.log("encypted data: ", encryptedData.toString("base64"));
-
-  // const decryptedData = crypto.privateDecrypt(
-  //   {
-  //     key: privateKey,
-  //     // In order to decrypt the data, we need to specify the
-  //     // same hashing function and padding scheme that we used to
-  //     // encrypt the data in the previous step
-  //     padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-  //     oaepHash: "sha256",
-  //   },
-  //   encryptedData
-  // );
-
-  // The decrypted data is of the Buffer type, which we can convert to a
-  // string to reveal the original data
-  // console.log("decrypted data: ", decryptedData.toString());
-
-  // Create some sample data that we want to sign
-  // const verifiableData = "this need to be verified";
-
-  // // The signature method takes the data we want to sign, the
-  // // hashing algorithm, and the padding scheme, and generates
-  // // a signature in the form of bytes
-  // const signature = crypto.sign("sha256", Buffer.from(verifiableData), {
-  //   key: privateKey,
-  //   padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
-  // });
-
-  // console.log(signature.toString("base64"));
-
-  // To verify the data, we provide the same hashing algorithm and
-  // padding scheme we provided to generate the signature, along
-  // with the signature itself, the data that we want to
-  // verify against the signature, and the public key
-  // const isVerified = crypto.verify(
-  //   "sha256",
-  //   Buffer.from(verifiableData),
-  //   {
-  //     key: publicKey,
-  //     padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
-  //   },
-  //   signature
-  // );
-
-  // isVerified should be `true` if the signature is valid
-  // console.log("signature verified: ", isVerified);
 
   const startReadSMS = async () => {
     const hasPermission = await ReadSms.requestReadSMSPermission();
@@ -239,7 +183,6 @@ function HomeScreen({ navigation }) {
           if (status == "success") {
             console.log("Great!! you have received new sms:", sms);
           }
-          postSMS();
           setNew((prev) => !prev);
         });
       } catch (error) {
@@ -332,11 +275,14 @@ function HomeScreen({ navigation }) {
                       <Text isTruncated w="60%">
                         {sms.body}
                       </Text>
-                      {false && (
+                      {sms?.spam && (
                         <Text w="30%">
                           <Badge colorScheme="danger">SPAM</Badge>
                         </Text>
                       )}
+                      {/* <Text w="30%">
+                        <Badge colorScheme="success">SAFE</Badge>
+                      </Text> */}
                     </Flex>
                   </Box>
                 </Box>

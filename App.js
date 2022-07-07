@@ -159,7 +159,7 @@ function HomeScreen({ navigation }) {
     SmsAndroid.list(
       JSON.stringify({
         box: "",
-        maxCount: 10,
+        // maxCount: 10,
       }),
       (fail) => {
         console.log("Failed with this error: " + fail);
@@ -210,7 +210,10 @@ function HomeScreen({ navigation }) {
   }, []);
 
   return (
-    <ScrollView w="100%">
+    <ScrollView
+      w="100%"
+      // onScrollEndDrag={alert("end")}
+    >
       <Input
         placeholder="Search Messages"
         width="100%"
@@ -421,9 +424,15 @@ function MessageScreen({ navigation }) {
               >
                 {selectedSms?.body}
               </Heading>
-              <Text w="30%" ml="2" mt="1">
-                {dayjs(selectedSms?.date).format("DD-MMM")}
-              </Text>
+
+              <Box w="30%" ml="2" mt="1">
+                <Text>{dayjs(selectedSms?.date).format("DD-MMM")}</Text>
+                {storage.getBoolean(selectedSms._id.toString()) && (
+                  <Badge mt="1" colorScheme="danger">
+                    SPAM
+                  </Badge>
+                )}
+              </Box>
             </Flex>
           </Box>
         </Box>
@@ -480,30 +489,45 @@ function LogoTitle(pp) {
           }}
         >
           <Menu.Item
-            onPress={() => {
+            onPress={async () => {
               // alert(selectedSms?.body);
-              postSMS();
-              toast.show({
-                placement: "top",
-                render: () => {
-                  return (
-                    <Box bg="emerald.500" mt="4" p="4" rounded="lg" mb={5}>
-                      This sms is not a spam message.
-                    </Box>
-                  );
-                },
-              });
+              const sms = await postSMS([selectedSms]);
+
+              if (sms?.spam) {
+                storage.set(sms._id.toString(), true);
+                toast.show({
+                  placement: "top",
+                  render: () => {
+                    return (
+                      <Box bg="red.500" mt="4" p="4" rounded="lg" mb={5}>
+                        This sms is a spam message.
+                      </Box>
+                    );
+                  },
+                });
+              } else {
+                toast.show({
+                  placement: "top",
+                  render: () => {
+                    return (
+                      <Box bg="emerald.500" mt="4" p="4" rounded="lg" mb={5}>
+                        This sms is not a spam message.
+                      </Box>
+                    );
+                  },
+                });
+              }
             }}
           >
             Check for Spam
           </Menu.Item>
-          <Menu.Item
+          {/* <Menu.Item
             onPress={() => {
               alert(selectedSms?.body);
             }}
           >
             Wrong Prediction
-          </Menu.Item>
+          </Menu.Item> */}
         </Menu>
       </Flex>
     </Box>

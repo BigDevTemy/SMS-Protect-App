@@ -6145,15 +6145,19 @@ react-native-get-sms-android@^2.1.0:
   resolved "https://registry.yarnpkg.com/react-native-get-sms-android/-/react-native-get-sms-android-2.1.0.tgz#0b04bd017f6e7f8a3c1ac9e61960e73d76750be0"
   integrity sha512-yYPlJ4DkuC9HnUL0ni644pDjRFnSQkdGHowIY5ab56YFDKHIEZ1rKuBCEbCWF0HALyvH6qCyfdHqwpzTtIj97w==
 
+react-native-mmkv@^2.4.3:
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/react-native-mmkv/-/react-native-mmkv-2.4.3.tgz#6bb4c2d5e328513da11faab1371d056a189adbd0"
+  integrity sha512-0hYNOTbsjJ5j5cpX+qjwReGIxuYE9MWRsyPQ72fTOvzmEjYXCF4Wr2VQoqx8R6W1/Uinekvln7dGvJ4RExmHhQ==
+
 react-native-permissions@^3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-3.3.1.tgz#8a359d9c0531afcde2f642a459b48c4c1e3e8f2d"
   integrity sha512-Ap9nVWBWJ7lyU6Ye3Qltm2V+Ut6XjDcs+6ZBmK1UUxcCoSSGx/mQg2GbMJLjlnoVtUgVHR3IhyZ0mN9DlMPRFQ==
 
-react-native-read-sms@^1.0.6:
+"react-native-read-sms@git+https://github.com/DamilolaAlao/react-native-read-sms.git":
   version "1.0.6"
-  resolved "https://registry.yarnpkg.com/react-native-read-sms/-/react-native-read-sms-1.0.6.tgz#e5ee7bf58c1a2c324b55181eb20888dbad0ce83a"
-  integrity sha512-gya1vc2KNOM9V8d2W8TD4oHXeSOdrWQpeQk+0nvJWwKEYnvQwxZArxKTDbrLA8n538DU3uoOo1nGy8SB93YWVw==
+  resolved "git+https://github.com/DamilolaAlao/react-native-read-sms.git#7d93708eb22683f0d0ef188c4962bc45dd7ff7dc"
 
 react-native-reanimated@~2.2.0:
   version "2.2.4"
@@ -7501,6 +7505,11 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+zustand-persist@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/zustand-persist/-/zustand-persist-0.4.0.tgz#55f32c3cd98ea91b89f07ae249d20e471f0a5ba3"
+  integrity sha512-u6bBIc4yZRpSKBKuTNhoqvoIb09gGHk2NkiPg4K7MPIWTYZg70PlpBn48QEDnKZwfNurnf58TaW5BuMGIMf5hw==
 
 zustand@^4.0.0-rc.0:
   version "4.0.0-rc.0"

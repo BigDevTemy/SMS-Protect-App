@@ -51,6 +51,10 @@ import * as ReadSms from "react-native-read-sms/ReadSms";
 import axios from "axios";
 const forge = require("node-forge");
 
+import { MMKV } from "react-native-mmkv";
+
+export const storage = new MMKV();
+
 // if (Platform.OS === 'web') { //TODO: render web version
 
 // }
@@ -124,20 +128,18 @@ const postSMS = async (load) => {
   };
 
   const responsed = await axios
-    .post(
-      `https://sms-protect-backend-jhelccjf2q-ew.a.run.app/classify`,
-      reqData
-    )
+    .post(`https://sms-backend-ng.herokuapp.com/classify`, reqData)
     .catch((err) => {
       console.log("resd2 err", err);
     });
 
-  if ((responsed.data.classification = "1")) {
+  console.log(responsed.data);
+  if (Boolean(+responsed.data.classification)) {
     console.log("this is a spam message", responsed.data);
     // return true;
     return { ...sms, spam: true };
   }
-  console.log(responsed);
+  // console.log(responsed);
   return sms;
 };
 
@@ -163,6 +165,9 @@ function HomeScreen({ navigation }) {
       async (count, smsList) => {
         const allSms = JSON.parse(smsList);
         const sms = await postSMS(allSms);
+        if (sms?.spam) {
+          storage.set(sms._id.toString(), true);
+        }
         console.log("sms: ", sms);
         console.log("Count: ", count);
 
@@ -275,7 +280,7 @@ function HomeScreen({ navigation }) {
                       <Text isTruncated w="60%">
                         {sms.body}
                       </Text>
-                      {sms?.spam && (
+                      {storage.getBoolean(sms._id.toString()) && (
                         <Text w="30%">
                           <Badge colorScheme="danger">SPAM</Badge>
                         </Text>

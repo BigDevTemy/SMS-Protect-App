@@ -19,6 +19,7 @@ import {
   VStack,
   Code,
   Button,
+  Spinner,
   Menu,
   useToast,
   ThreeDotsIcon,
@@ -148,6 +149,7 @@ export const theme = extendTheme({ config });
 
 function HomeScreen({ navigation }) {
   const [arr, setArr] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [newupdate, setNew] = useState(false);
   const smsList = useStore((state) => state.smslist);
   const setSms = useStore((state) => state.setSms);
@@ -163,18 +165,25 @@ function HomeScreen({ navigation }) {
         console.log("Failed with this error: " + fail);
       },
       async (count, smsList) => {
+        // const allSms = [];
         const allSms = JSON.parse(smsList);
-        const sms = await postSMS(allSms);
-        if (sms?.spam) {
-          storage.set(sms._id.toString(), true);
+        if (
+          Boolean(allSms.length) &&
+          !storage.getBoolean(allSms[0]._id.toString())
+        ) {
+          const sms = await postSMS(allSms);
+          console.log("sms: ", sms);
+          console.log("Count: ", count);
+
+          const foundIndex = allSms.findIndex((x) => x._id == sms._id);
+          allSms[foundIndex] = sms;
+
+          if (sms?.spam) {
+            storage.set(sms._id.toString(), true);
+          }
         }
-        console.log("sms: ", sms);
-        console.log("Count: ", count);
-
-        const foundIndex = allSms.findIndex((x) => x._id == sms._id);
-        allSms[foundIndex] = sms;
-
         listSms(allSms);
+        setIsLoading(false);
       }
     );
   }, [newupdate]);
@@ -229,6 +238,11 @@ function HomeScreen({ navigation }) {
         }
       />
       <VStack w="100%" divider={<Divider />}>
+        {!Boolean(smsList.length) && !isLoading && (
+          <Center h="12" rounded="full">
+            <Heading size="lg">No Messages</Heading>
+          </Center>
+        )}
         {smsList &&
           smsList.map((sms, index) => {
             return (
@@ -296,6 +310,9 @@ function HomeScreen({ navigation }) {
             );
           })}
       </VStack>
+      {isLoading && (
+        <Spinner size="lg" color="gray.400" accessibilityLabel="Loading..." />
+      )}
       <Request />
     </ScrollView>
   );

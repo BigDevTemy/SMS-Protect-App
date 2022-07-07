@@ -158,8 +158,10 @@ function HomeScreen({ navigation }) {
   useEffect(() => {
     SmsAndroid.list(
       JSON.stringify({
-        box: "",
-        // maxCount: 10,
+        box: "inbox", // 'inbox' (default), 'sent', 'draft', 'outbox', 'failed', 'queued', and '' for all
+        /** the next 2 filters can be used for pagination **/
+        // indexFrom: 0, // start from index 0
+        // maxCount: 10, // count of SMS to return each time
       }),
       (fail) => {
         console.log("Failed with this error: " + fail);
@@ -323,67 +325,6 @@ function HomeScreen({ navigation }) {
 function MessageScreen({ navigation }) {
   const selectedSms = useStore((state) => state.selectedSms);
 
-  // console.log("selectedSms: ", selectedSms);
-
-  const postSMS = async (payload) => {
-    const encrypted = CryptoES.AES.encrypt(
-      payload || "Message",
-      "Secret Passphrase"
-    );
-    console.log(encrypted.key.toString()); // 74eb593087a982e2a6f5dded54ecd96d1fd0f3d44a58728cdcd40c55227522223
-    console.log(encrypted.iv.toString()); // 7781157e2629b094f0e3dd48c4d786115
-    console.log(encrypted.toString()); // 73e54154a15d1beeb509d9e12f1e462a0
-
-    const hashed = CryptoES.HmacSHA256(encrypted.toString(), Config.PUBLIC_KEY);
-    console.log(hashed.toString());
-
-    // RSA.encrypt("my_secret_message", Config.PUBLIC_KEY).then(
-    //   (encodedMessage) => {
-    //     console.log(`the encoded message is ${encodedMessage}`);
-    //     // RSA.decrypt(encodedMessage, keys.private).then((decryptedMessage) => {
-    //     //   console.log(`The original message was ${decryptedMessage}`);
-    //     // });
-    //   }
-    // );
-
-    // const response = await axios
-    //   .post(`https://sms-backend-ng.herokuapp.com/classify`, {
-    //     key: encrypted.key.toString(CryptoES.enc.Base64),
-    //     iv: encrypted.iv.toString(CryptoES.enc.Base64),
-    //     message: hashed.toString(CryptoES.enc.Base64),
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //   });
-
-    const encryptedData = crypto
-      .publicEncrypt(
-        {
-          key: "-----BEGIN RSA PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAsf/kBdGVPGsDY8/PEo8wK/CIlp/vqPUqdao+1RDMlLUOeLJklMP+tWhh1MkrkEVZUwaU1TaPiv5g9xp4NJ4Vva6fteN7LbDP53+G/yh2NDZltRXrqJXz/dTORPoZLqQ+uUtHkNwwdTVA7UKpnTuH4DzByqBpGLE6v9AEGg3dA9D9H6eUxPtzlLX2E0E6pDn6nGlRfG4+pU41O9V/XNLQ5oCiny1KxVq8blxAUR/KGjuuMSPL9hos3Oy1DATgY7KMAW/Zw8xE99CQptFe3RA+XS4R2Yr8AepUW1bi+wSOCTzzFUFaGVh7PEktqSAJTHTmeCi5+knIBm/v+Dh0wxqdGzqn9/uVKsJxSoeMDxvk53he67p0dlrlwP1GztPhW8dkTF5ZVeC4nuj3zBeeaull1DIv+Bmo+dFBctnjTmd/JUgHiUfDT3jDU7nVW2vb5FV25Z4kvCgSuCok5rnQlwTXZtGzBiWEXiDpnUdMswZ8PQ8kP7DbMDmHjIfcnQAPfz8DKxdcJ2lgHEWOFfVgR1s7kopNfJwGFRQQeRuEFRrhkPsOkZjHzq0gLWB4KTYyRALZaCJo6TeebZOoerAfPo1+hKrxLd7OZkzOQsc7fWRM2IRLsv0tV+OR9U+pmFQ3BMuiI5Q2Sel/fSXvbn5O660/ZONyC6f1hbrez6WPZjZwxksCAwEAAQ==\n-----END RSA PUBLIC KEY-----\n",
-          padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-          oaepHash: "sha256",
-        }
-        // We convert the data string to a buffer using `Buffer.from`
-        // Buffer.from(data)
-      )
-      .catch((err) => {
-        console.log(err);
-      });
-    console.log("the enc" + encryptedData);
-
-    const response = await axios
-      .post(`https://sms-backend-ng.herokuapp.com/classify`, {
-        key: "gKBW2okM8nh7YJvaeJel2236SigokTjgfkWu1/WkgqeF9359pZMPRMA3OINrEx0L48OKrZ2QBy9HROckl4eZgYEJMTK4PjOwCr/LX3DmB5ZbrvsFd1E7Wxk5rrxhtsLybPzEnF+2dCIVabH/ckAMMG44Xd1D7hdWL8xODHCpzQA+MX16vNxpgCpNiuqHzqlFCTqXPmvaxrt1cmPRs4ZrvsWgv/DYBpE7Ai0g7gLpDO4yS//fdMMXbbERedGAPxKPiCTRiAqxf+TYy1WlyOUC2FRaiUuLVWulUv1R6191bIv8uR5p7X87OaX101v0CxjVOprHK3PYOLnT0MtM5Aa1VKcFl/331Guaxz7uGbrFOqnUWEb4yZTSrdgAvS4yI2o/a2GroL4NEjb7yYQUeHh5BVVOTmkWrG4ZX0QAn58eCXsZltSE1cjcBOfbHhK4dPce5ycemwnCr84QhGy0fK08/zWj+m1t7r1rwmeLYTzScrRuGRBuYNsTHexyyfFUIT+A7JrnC1JxtniwnelPzvSJgHR5PUk75AsmljxH/uguBpWoSl0MINd8ZkLW/NAMIOkPMvSzHUC3iA+EZkJymgmaq0tGmDI/X5O9NK79jvsrHAHkwDVDjGAngA68Sxro6+flPs1cviLP0V0oQBXjnUDJtu1FIKPasbGb3IIIqtCmrzE=",
-        iv: "oyE9N786v2dlaYewDbNzRe7tCSUNesROkOQs6a1lGkk5aKHhuFpJbQMQ9NGnfMH3RLlt4lOFWwj3sCpaZ4nUNgOBx2hMcX1wsp6+uQVy6WKMqhrWIaEjuw9dEs9Gk27hpm4VcXSreo2LlXvKM0GVl/Zs9w3r4Aplx8sHo8z+gm/Tks+VWUZ/4XOU73X6plu9j76mJKC2JD5QXU0ILJp4/T1k2woxtsul2GG7Kgw35s0GYZxN9e+/pznMAIxDc1wmjMy+nRtZtUumFkjATBtMsyZZPocGGsutJtlSCCfh2JzEOBOr3DY3wLEUFElBRNvwcXTAnvPYlEsxDVLMtKyur6gIaLEj5W4g366Gd8MvIVCoXTlVUHamRMwD3P0qvG5Pk9M4s06etP2h8obchG4NXpQO1A9HP8htn7sAwsudxIAwnzfx8H878bexEWBMaflUNCLuVTkfnbr9log5ynP+cmHzm2ZSoENGE/iiPotC2SRHdli+gi4szczfENS9WKcxZPjAnFkr4zS5GHy6GL3Aus3qAcjf9NK8YjKSLw3oi9wUazsA0KWTpxkznW3qN2/8l0R0D1W/HvarEe+Y4T0zap1IrGwYa1k2qsYRaQxVXw/UMLI8fN0ZsWX3bRVbbWxt/4FQ4nzJZXNZg/8HZZXLChY4Ny3Oe7GQqVfQSmXKh5E=",
-        message:
-          "jl3A64sEbA3sMnv+wHt1szQPnYFdC8Aqs8XUCV8QhrkiRdoDtRdYk7cP384gK/xElOk5xS89DDrJkddaXYoYRq16IB8GUT5v72Jw0gfOs3D1rMMazXYlySiImzWmx33c+WSlQjN6OfaWeOrVbGAhk/eUNTgsNZSc88D0kSjhC2VGloTRaArVyu33fl3MVJYisPW2DODjHMBzBSlhrpFwSGp3wWuGAiZS52H71PaIRESADBpCsbc654zbKhLb8EBM",
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    console.log(response?.data);
-    return response;
-  };
   return (
     <ScrollView h="100%" w="full" display="flex" flexDirection="column-reverse">
       <Link width="60%" onPress={() => {}} m="0" p="0">

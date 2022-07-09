@@ -154,6 +154,7 @@ const postSMS = async (load) => {
 export const theme = extendTheme({ config });
 
 function HomeScreen({ navigation }) {
+  const [value, setValue] = React.useState("");
   const [arr, setArr] = useState(null);
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -163,9 +164,13 @@ function HomeScreen({ navigation }) {
   const listSms = useStore((state) => state.listSms);
   const newupdateg = useStore((state) => state.newupdate);
 
+  const handleChange = (text) => setValue(text);
+
   useEffect(() => {
+    setIsLoading(true);
     SmsAndroid.list(
       JSON.stringify({
+        bodyRegex: `(.*)${value.toString()}(.*)`,
         box: "inbox", // 'inbox' (default), 'sent', 'draft', 'outbox', 'failed', 'queued', and '' for all
         /** the next 2 filters can be used for pagination **/
         // indexFrom: 0, // start from index 0
@@ -202,7 +207,7 @@ function HomeScreen({ navigation }) {
         setIsLoading(false);
       }
     );
-  }, [newupdate, newupdateg]);
+  }, [newupdate, newupdateg, value]);
 
   const startReadSMS = async () => {
     const hasPermission = await ReadSms.requestReadSMSPermission();
@@ -232,6 +237,8 @@ function HomeScreen({ navigation }) {
     >
       <Input
         placeholder="Search Messages"
+        value={value}
+        onChangeText={handleChange}
         width="100%"
         borderRadius="4"
         py="3"

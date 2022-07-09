@@ -129,10 +129,16 @@ const postSMS = async (load) => {
   };
 
   const responsed = await axios
-    .post(`https://sms-backend-ng.herokuapp.com/classify`, reqData)
+    .post(
+      `https://sms-protect-backend-jhelccjf2q-ew.a.run.app/classify`,
+      reqData
+    )
     .catch((err) => {
       console.log("resd2 err", err);
+      return { error: true };
     });
+
+  if (responsed.error) return responsed;
 
   console.log(responsed.data);
   if (Boolean(+responsed.data.classification)) {
@@ -149,11 +155,13 @@ export const theme = extendTheme({ config });
 
 function HomeScreen({ navigation }) {
   const [arr, setArr] = useState(null);
+  const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [newupdate, setNew] = useState(false);
   const smsList = useStore((state) => state.smslist);
   const setSms = useStore((state) => state.setSms);
   const listSms = useStore((state) => state.listSms);
+  const newupdateg = useStore((state) => state.newupdate);
 
   useEffect(() => {
     SmsAndroid.list(
@@ -161,7 +169,7 @@ function HomeScreen({ navigation }) {
         box: "inbox", // 'inbox' (default), 'sent', 'draft', 'outbox', 'failed', 'queued', and '' for all
         /** the next 2 filters can be used for pagination **/
         // indexFrom: 0, // start from index 0
-        // maxCount: 10, // count of SMS to return each time
+        maxCount: 20, // count of SMS to return each time
       }),
       (fail) => {
         console.log("Failed with this error: " + fail);
@@ -177,18 +185,24 @@ function HomeScreen({ navigation }) {
           console.log("sms: ", sms);
           console.log("Count: ", count);
 
-          const foundIndex = allSms.findIndex((x) => x._id == sms._id);
-          allSms[foundIndex] = sms;
+          if (sms?.error) {
+            setIsError(true);
+            setIsLoading(false);
+            return;
+          } else {
+            const foundIndex = allSms.findIndex((x) => x._id == sms._id);
+            allSms[foundIndex] = sms;
 
-          if (sms?.spam) {
-            storage.set(sms._id.toString(), true);
+            if (sms?.spam) {
+              storage.set(sms._id.toString(), true);
+            }
           }
         }
         listSms(allSms);
         setIsLoading(false);
       }
     );
-  }, [newupdate]);
+  }, [newupdate, newupdateg]);
 
   const startReadSMS = async () => {
     const hasPermission = await ReadSms.requestReadSMSPermission();
@@ -245,7 +259,12 @@ function HomeScreen({ navigation }) {
       <VStack w="100%" divider={<Divider />}>
         {!Boolean(smsList.length) && !isLoading && (
           <Center h="12" rounded="full">
-            <Heading size="lg">No Messages</Heading>
+            <Heading size="lg">
+              {isError ? "Check your internet connection" : "No Messages"}
+            </Heading>
+            {/* <Button mt="2" onClick={() => setNew((prev) => !prev)}>
+              Reload
+            </Button> */}
           </Center>
         )}
         {smsList &&
@@ -323,7 +342,14 @@ function HomeScreen({ navigation }) {
   );
 }
 function MessageScreen({ navigation }) {
-  const selectedSms = useStore((state) => state.selectedSms);
+  const initialSms = useStore((state) => state.selectedSms);
+  const setNewupdate = useStore((state) => state.setNewupdate);
+  const [selectedSms, setSelectedSms] = useState(initialSms);
+
+  useEffect(() => {
+    setSelectedSms(initialSms);
+    setNewupdate();
+  }, [initialSms]);
 
   return (
     <ScrollView h="100%" w="full" display="flex" flexDirection="column-reverse">
@@ -402,6 +428,7 @@ function MessageScreen({ navigation }) {
 
 function LogoTitle(pp) {
   const selectedSms = useStore((state) => state.selectedSms);
+  const setSms = useStore((state) => state.setSms);
   const toast = useToast();
   return (
     <Box
@@ -433,7 +460,9 @@ function LogoTitle(pp) {
             onPress={async () => {
               // alert(selectedSms?.body);
               const sms = await postSMS([selectedSms]);
-
+              if (!sms?.error) {
+                setSms(sms);
+              }
               if (sms?.spam) {
                 storage.set(sms._id.toString(), true);
                 toast.show({

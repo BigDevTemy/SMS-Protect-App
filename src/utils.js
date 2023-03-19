@@ -26,7 +26,7 @@ export const postSMS = async (load) => {
   };
 
   const encrypted_key = encrypt(payload);
-  console.log(decrypt(encrypted_key));
+  //   console.log({ decrypt: decrypt(encrypted_key) });
 
   const pub2 = forge.pki.publicKeyFromPem(`-----BEGIN PUBLIC KEY-----
     MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAsf/kBdGVPGsDY8/PEo8w
@@ -66,9 +66,15 @@ export const postSMS = async (load) => {
   console.log(responsed.data);
   if (Boolean(+responsed.data.classification)) {
     console.log("this is a spam message", responsed.data);
-    // return true;
     return { ...sms, spam: true };
   }
-  // console.log(responsed);
+
   return sms;
+};
+
+export const returnShade = (id = 0) => {
+  if (id % 4 === 0) return "info.400";
+  if (id % 4 === 1) return "tertiary.400";
+  if (id % 4 === 2) return "secondary.400";
+  if (id % 4 === 3) return "purple.400";
 };

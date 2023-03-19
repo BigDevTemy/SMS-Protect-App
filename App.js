@@ -43,6 +43,13 @@ import {
   MaterialIcons,
   FontAwesome,
 } from "@expo/vector-icons";
+
+import { AppRegistry } from "react-native";
+AppRegistry.registerHeadlessTask(
+  "ReadSms",
+  () => require("./src/tasks/readSms.js").default
+);
+
 const dayjs = require("dayjs");
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);

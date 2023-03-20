@@ -21,7 +21,7 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import * as ReadSms from "react-native-read-sms/ReadSms";
 import { storage } from "../../storage";
 import { postSMS, returnShade } from "../utils";
-
+import { AppState } from "react-native";
 
 const dayjs = require("dayjs");
 var relativeTime = require("dayjs/plugin/relativeTime");
@@ -39,7 +39,7 @@ export function HomeScreen({ navigation }) {
 
   const handleChange = (text) => setValue(text);
 
-  useEffect(() => {
+  const loadAllSms = () => {
     setIsLoading(true);
     SmsAndroid.list(
       JSON.stringify({
@@ -52,16 +52,13 @@ export function HomeScreen({ navigation }) {
       (fail) => {
         console.log("Failed with this error: " + fail);
       },
-      async (count, smsList) => {
+      async (_count, smsList) => {
         const allSms = JSON.parse(smsList);
         if (
           Boolean(allSms.length) &&
           !storage.getBoolean(allSms[0]._id.toString())
         ) {
-          console.log({ allSms });
           const sms = await postSMS(allSms);
-          console.log("sms: ", sms);
-          console.log("Count: ", count);
 
           if (sms?.error) {
             setIsError(true);
@@ -80,6 +77,10 @@ export function HomeScreen({ navigation }) {
         setIsLoading(false);
       }
     );
+  };
+
+  useEffect(() => {
+    loadAllSms();
   }, [newupdate, newupdateg, value]);
 
   const startReadSMS = async () => {
@@ -101,6 +102,22 @@ export function HomeScreen({ navigation }) {
 
   useEffect(() => {
     startReadSMS();
+  }, []);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === "active") {
+        // App resumes from background
+        loadAllSms();
+      }
+    };
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   return (

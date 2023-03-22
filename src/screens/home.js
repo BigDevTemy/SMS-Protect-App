@@ -22,6 +22,83 @@ import * as ReadSms from "react-native-read-sms/ReadSms";
 import { storage } from "../../storage";
 import { postSMS, returnShade } from "../utils";
 import { AppState } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+
+const CONTACT_NAME_PREFIX = "contact-name-";
+
+const ListItem = ({ sms }) => {
+  const { navigate } = useNavigation();
+  const setSms = useStore((state) => state.setSms);
+  const contacts = useStore((state) => state.allContacts);
+  const [name, setName] = useState(sms.address);
+
+  useEffect(() => {
+    const contactName = storage.getString(
+      CONTACT_NAME_PREFIX + sms._id.toString()
+    );
+
+    if (contactName) {
+      setName(contactName);
+      return;
+    }
+
+    if (contacts && contacts.length) {
+      const contact = contacts.find((c) => c.number === sms.address);
+
+      if (contact) {
+        storage.set(CONTACT_NAME_PREFIX + sms._id.toString(), contact.name);
+
+        setName(contact.name);
+      }
+    }
+  }, [sms._id]);
+  return (
+    <Link
+      key={sms._id}
+      onPress={() => {
+        setSms(sms);
+        navigate("Message");
+      }}
+      m="0"
+      p="0"
+    >
+      <Box
+        w="full"
+        display="flex"
+        bg="white"
+        p="4"
+        flexDirection="row"
+        justifyContent="space-between"
+      >
+        <Center h="10" w="10" mr="2" rounded="full" bg={returnShade(sms?._id)}>
+          <Icon
+            as={<MaterialCommunityIcons name="account" />}
+            color="white"
+            size={6}
+          />
+        </Center>
+        <Box w="100%">
+          <Flex direction="row" justify="space-between">
+            <Heading w="60%" size="md">
+              {name}
+            </Heading>
+            <Text w="30%">{dayjs(sms.date).format("DD-MMM")}</Text>
+          </Flex>
+          <Flex direction="row" justify="space-between">
+            <Text isTruncated w="60%">
+              {sms.body}
+            </Text>
+            {storage.getBoolean(sms._id.toString()) && (
+              <Text w="30%">
+                <Badge colorScheme="danger">SPAM</Badge>
+              </Text>
+            )}
+          </Flex>
+        </Box>
+      </Box>
+    </Link>
+  );
+};
 
 const dayjs = require("dayjs");
 var relativeTime = require("dayjs/plugin/relativeTime");
@@ -33,7 +110,6 @@ export function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
   const [newupdate, setNew] = useState(false);
   const smsList = useStore((state) => state.smslist);
-  const setSms = useStore((state) => state.setSms);
   const listSms = useStore((state) => state.listSms);
   const newupdateg = useStore((state) => state.newupdate);
 
@@ -160,58 +236,7 @@ export function HomeScreen({ navigation }) {
         )}
         {smsList &&
           smsList.map((sms, index) => {
-            return (
-              <Link
-                key={sms._id}
-                onPress={() => {
-                  setSms(sms);
-                  navigation.navigate("Message");
-                }}
-                m="0"
-                p="0"
-              >
-                <Box
-                  w="full"
-                  display="flex"
-                  bg="white"
-                  p="4"
-                  flexDirection="row"
-                  justifyContent="space-between"
-                >
-                  <Center
-                    h="10"
-                    w="10"
-                    mr="2"
-                    rounded="full"
-                    bg={returnShade(sms?._id)}
-                  >
-                    <Icon
-                      as={<MaterialCommunityIcons name="account" />}
-                      color="white"
-                      size={6}
-                    />
-                  </Center>
-                  <Box w="100%">
-                    <Flex direction="row" justify="space-between">
-                      <Heading w="60%" size="md">
-                        {sms.address}
-                      </Heading>
-                      <Text w="30%">{dayjs(sms.date).format("DD-MMM")}</Text>
-                    </Flex>
-                    <Flex direction="row" justify="space-between">
-                      <Text isTruncated w="60%">
-                        {sms.body}
-                      </Text>
-                      {storage.getBoolean(sms._id.toString()) && (
-                        <Text w="30%">
-                          <Badge colorScheme="danger">SPAM</Badge>
-                        </Text>
-                      )}
-                    </Flex>
-                  </Box>
-                </Box>
-              </Link>
-            );
+            return <ListItem key={index} sms={sms} />;
           })}
       </VStack>
       {isLoading && (

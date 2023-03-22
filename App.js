@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Flex,
   Heading,
@@ -13,12 +13,12 @@ import {
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import useStore from "./store";
-
 import { HomeScreen } from "./src/screens/home.js";
 import { MessageScreen } from "./src/screens/message.js";
 import { postSMS } from "./src/utils";
 import { storage } from "./storage";
-import { AppRegistry } from "react-native";
+import { AppRegistry, PermissionsAndroid } from "react-native";
+import Contacts from "react-native-contacts";
 
 AppRegistry.registerHeadlessTask(
   "ReadSms",
@@ -53,7 +53,9 @@ function LogoTitle(pp) {
     >
       <Flex direction="row" justify="space-between">
         <Heading ml="0" w="70%" fontSize="md">
-          {selectedSms?.address || "Contact"}
+          {storage.getString("contact-name-" + selectedSms?._id.toString()) ||
+            selectedSms?.address ||
+            "Contact"}
         </Heading>
         <Menu
           trigger={(triggerProps) => {
@@ -110,7 +112,52 @@ function LogoTitle(pp) {
   );
 }
 
+const cleanNumber = (number) =>
+  number.replace("(", "").replace(")", "").replace(" ", "").replace("-", "");
+
+const requestContactsPermission = async () => {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+      {
+        title: "Contacts",
+        message: "SMS Protect would like access to your contacts.",
+        buttonPositive: "OK",
+        buttonNegative: "Cancel",
+      }
+    );
+
+    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+      return;
+    }
+
+    const contacts = await Contacts.getAll();
+
+    return contacts.flatMap((contact) => {
+      return contact.phoneNumbers.flatMap((number) => {
+        return {
+          name: contact.displayName,
+          number: cleanNumber(number.number),
+        };
+      });
+    });
+  } catch (err) {
+    console.warn(err);
+  }
+};
+
 export default function App() {
+  const setContacts = useStore((state) => state.setAllContacts);
+
+  useEffect(() => {
+    const cacheContacts = async () => {
+      const contacts = await requestContactsPermission();
+      setContacts(contacts ?? []);
+    };
+
+    cacheContacts();
+  }, []);
+
   return (
     <NavigationContainer>
       <NativeBaseProvider>

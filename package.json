@@ -31,6 +31,7 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "0.63.5",
+    "react-native-contacts": "^7.0.5",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~1.10.2",
     "react-native-get-sms-android": "^2.1.0",

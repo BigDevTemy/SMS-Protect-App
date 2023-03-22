@@ -2,6 +2,7 @@ import create from "zustand";
 
 const useStore = create((set) => ({
   smslist: [],
+  allContacts: [],
   selectedSms: null,
   newupdate: false,
   listSms: (sms) =>
@@ -16,6 +17,7 @@ const useStore = create((set) => ({
     set((state) => {
       return { newupdate: !state.newupdate };
     }),
+  setAllContacts: (contacts) => set((state) => ({ allContacts: contacts })),
 }));
 
 export default useStore;

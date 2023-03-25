@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Text,
-  Link,
-  Badge,
-  Flex,
   Icon,
   Input,
   Divider,
@@ -11,100 +7,19 @@ import {
   Heading,
   VStack,
   Spinner,
-  Box,
   ScrollView,
 } from "native-base";
 import SmsAndroid from "react-native-get-sms-android";
 import useStore from "../../store";
 import Request from "../../components/RequestPerm";
-import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import * as ReadSms from "react-native-read-sms/ReadSms";
 import { storage } from "../../storage";
-import { postSMS, returnShade } from "../utils";
+import { postSMS } from "../utils";
 import { AppState } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { ListItem } from "./listItem";
 
-const CONTACT_NAME_PREFIX = "contact-name-";
-
-const ListItem = ({ sms }) => {
-  const { navigate } = useNavigation();
-  const setSms = useStore((state) => state.setSms);
-  const contacts = useStore((state) => state.allContacts);
-  const [name, setName] = useState(sms.address);
-
-  useEffect(() => {
-    const contactName = storage.getString(
-      CONTACT_NAME_PREFIX + sms._id.toString()
-    );
-
-    if (contactName) {
-      setName(contactName);
-      return;
-    }
-
-    if (contacts && contacts.length) {
-      const contact = contacts.find((c) => c.number === sms.address);
-
-      if (contact) {
-        storage.set(CONTACT_NAME_PREFIX + sms._id.toString(), contact.name);
-
-        setName(contact.name);
-      }
-    }
-  }, [sms._id]);
-  return (
-    <Link
-      key={sms._id}
-      onPress={() => {
-        setSms(sms);
-        navigate("Message");
-      }}
-      m="0"
-      p="0"
-    >
-      <Box
-        w="full"
-        display="flex"
-        bg="white"
-        p="4"
-        flexDirection="row"
-        justifyContent="space-between"
-      >
-        <Center h="10" w="10" mr="2" rounded="full" bg={returnShade(sms?._id)}>
-          <Icon
-            as={<MaterialCommunityIcons name="account" />}
-            color="white"
-            size={6}
-          />
-        </Center>
-        <Box w="100%">
-          <Flex direction="row" justify="space-between">
-            <Heading w="60%" size="md">
-              {name}
-            </Heading>
-            <Text w="30%">{dayjs(sms.date).format("DD-MMM")}</Text>
-          </Flex>
-          <Flex direction="row" justify="space-between">
-            <Text isTruncated w="60%">
-              {sms.body}
-            </Text>
-            {storage.getBoolean(sms._id.toString()) && (
-              <Text w="30%">
-                <Badge colorScheme="danger">SPAM</Badge>
-              </Text>
-            )}
-          </Flex>
-        </Box>
-      </Box>
-    </Link>
-  );
-};
-
-const dayjs = require("dayjs");
-var relativeTime = require("dayjs/plugin/relativeTime");
-dayjs.extend(relativeTime);
-
-export function HomeScreen({ navigation }) {
+export function HomeScreen() {
   const [value, setValue] = React.useState("");
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -145,7 +60,7 @@ export function HomeScreen({ navigation }) {
             allSms[foundIndex] = sms;
 
             if (sms?.spam) {
-              storage.set(sms._id.toString(), true);
+              storage.set("IS_SPAM_" + sms._id.toString(), true);
             }
           }
         }

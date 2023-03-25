@@ -18,16 +18,11 @@ import { MessageScreen } from "./src/screens/message.js";
 import { postSMS } from "./src/utils";
 import { storage } from "./storage";
 import { AppRegistry, PermissionsAndroid } from "react-native";
-import Contacts from "react-native-contacts";
 
 AppRegistry.registerHeadlessTask(
   "ReadSms",
   () => require("./src/tasks/readSms.js").default
 );
-
-const dayjs = require("dayjs");
-var relativeTime = require("dayjs/plugin/relativeTime");
-dayjs.extend(relativeTime);
 
 const Stack = createNativeStackNavigator();
 
@@ -112,9 +107,6 @@ function LogoTitle(pp) {
   );
 }
 
-const cleanNumber = (number) =>
-  number.replace("(", "").replace(")", "").replace(" ", "").replace("-", "");
-
 const requestContactsPermission = async () => {
   try {
     const granted = await PermissionsAndroid.request(
@@ -130,32 +122,18 @@ const requestContactsPermission = async () => {
     if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
       return;
     }
-
-    const contacts = await Contacts.getAll();
-
-    return contacts.flatMap((contact) => {
-      return contact.phoneNumbers.flatMap((number) => {
-        return {
-          name: contact.displayName,
-          number: cleanNumber(number.number),
-        };
-      });
-    });
   } catch (err) {
     console.warn(err);
   }
 };
 
 export default function App() {
-  const setContacts = useStore((state) => state.setAllContacts);
-
   useEffect(() => {
-    const cacheContacts = async () => {
-      const contacts = await requestContactsPermission();
-      setContacts(contacts ?? []);
+    const reqPermissions = async () => {
+      await requestContactsPermission();
     };
 
-    cacheContacts();
+    reqPermissions();
   }, []);
 
   return (

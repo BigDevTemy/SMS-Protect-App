@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Flex,
   Heading,
@@ -17,7 +17,19 @@ import { HomeScreen } from "./src/screens/home.js";
 import { MessageScreen } from "./src/screens/message.js";
 import { postSMS } from "./src/utils";
 import { storage } from "./storage";
-import { AppRegistry, PermissionsAndroid } from "react-native";
+import {
+  View,
+  Text,
+  StatusBar,
+  TouchableOpacity,
+  Linking,
+  AppRegistry,
+  PermissionsAndroid,
+  Platform,
+  Modal,
+  ActivityIndicator,
+} from "react-native";
+import { s } from "./src/app.styles.js";
 
 AppRegistry.registerHeadlessTask(
   "ReadSms",
@@ -107,34 +119,86 @@ function LogoTitle(pp) {
   );
 }
 
-const requestContactsPermission = async () => {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
-      {
-        title: "Contacts",
-        message: "SMS Protect would like access to your contacts.",
-        buttonPositive: "OK",
-        buttonNegative: "Cancel",
-      }
-    );
-
-    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-      return;
-    }
-  } catch (err) {
-    console.warn(err);
-  }
-};
-
 export default function App() {
+  const [hasCheckedPermissions, setHasCheckedPermissions] = useState(false);
+  const [hasSmsPermission, setHasSmsPermission] = useState(false);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+
+  const getPermissions = async () => {
+    const hasPermissions = await requestPermissions();
+    setHasSmsPermission(hasPermissions);
+  };
+
   useEffect(() => {
-    const reqPermissions = async () => {
-      await requestContactsPermission();
+    const doInit = async () => {
+      const hasPermissions = await checkSMSPermissions();
+      setHasSmsPermission(hasPermissions);
+      setHasCheckedPermissions(true);
+
+      if (!hasPermissions) {
+        setShowPermissionsModal(true);
+      }
     };
 
-    reqPermissions();
+    doInit();
   }, []);
+
+  if (!hasCheckedPermissions) {
+    return (
+      <View style={[s.flexOne, s.allCenter]}>
+        <StatusBar barStyle="dark-content" />
+        <ActivityIndicator size="large" color="grey" />
+      </View>
+    );
+  }
+
+  if (!hasSmsPermission) {
+    return (
+      <View style={s.flexOne}>
+        <StatusBar barStyle="dark-content" />
+
+        {!showPermissionsModal && (
+          <View style={s.container}>
+            <Text>SMS Protect needs permissions to work correctly.</Text>
+            <Text>Grant permissions in settings.</Text>
+            <TouchableOpacity
+              style={s.button}
+              onPress={() => Linking.openSettings()}
+            >
+              <Text>Open Settings</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <Modal visible={showPermissionsModal} transparent>
+          <View style={s.modalContainer}>
+            <View style={s.modalView}>
+              <Text style={s.modalTitle}>SMS Protect</Text>
+              <Text style={s.subTitle}>
+                SMS Protect needs these permissions enabled to be able to check
+                messages for any fraudulent patterns.
+              </Text>
+              <Text style={s.subHeader}>
+                We need your permission to access:
+              </Text>
+              <Text style={s.permissionItem}>SMS, Incoming SMS</Text>
+              <View style={s.divider} />
+              <Text style={s.permissionItem}>Contacts</Text>
+              <TouchableOpacity
+                style={s.grantButton}
+                onPress={() => {
+                  getPermissions();
+                  setShowPermissionsModal(false);
+                }}
+              >
+                <Text>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
@@ -155,3 +219,52 @@ export default function App() {
     </NavigationContainer>
   );
 }
+
+const checkSMSPermissions = async () => {
+  if (Platform.OS === "android" && Platform.Version < 23) {
+    return true;
+  }
+
+  const hasReceiveSmsPermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.RECEIVE_SMS
+  );
+
+  const hasReadSmsPermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.READ_SMS
+  );
+
+  return hasReceiveSmsPermission && hasReadSmsPermission;
+};
+
+const checkContactsPermissions = async () => {
+  return await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.READ_CONTACTS
+  );
+};
+
+const requestPermissions = async () => {
+  const hasSmsPermission = await checkSMSPermissions();
+  const hasContactsPermission = await checkContactsPermissions();
+
+  const permissionsToRequest = [];
+
+  if (hasSmsPermission) {
+    return true;
+  } else {
+    permissionsToRequest.push(
+      PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
+      PermissionsAndroid.PERMISSIONS.READ_SMS
+    );
+  }
+
+  if (!hasContactsPermission) {
+    permissionsToRequest.push(PermissionsAndroid.PERMISSIONS.READ_CONTACTS);
+  }
+
+  const status = await PermissionsAndroid.requestMultiple(permissionsToRequest);
+
+  return (
+    status["android.permission.READ_SMS"] === "granted" &&
+    status["android.permission.RECEIVE_SMS"] === "granted"
+  );
+};

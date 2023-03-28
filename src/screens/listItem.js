@@ -38,11 +38,14 @@ export const ListItem = ({ sms }) => {
       return;
     }
 
-    const address = parsePhoneNumberFromString(
-      sms.address,
-      "NG"
-    ).nationalNumber;
+    const parsedNumber = parsePhoneNumberFromString(sms.address, "NG");
 
+    if (!parsedNumber.isValid()) {
+      setName(sms.address);
+      return;
+    }
+
+    const address = parsedNumber.nationalNumber;
     const contacts = await Contacts.getContactsByPhoneNumber(address);
 
     if (contacts && contacts.length) {

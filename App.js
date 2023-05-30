@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,LogBox } from "react";
 import {
   Flex,
   Heading,
@@ -254,6 +254,7 @@ export default function App() {
       
   };
   console.disableYellowBox = true;
+
   return (
       
     <NavigationContainer>

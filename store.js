@@ -83,7 +83,7 @@ const persistConfig = {
 
 
 const useStore = create(
-devtools(persist((set,get) => ({
+ persist((set,get) => ({
   smslist: [],
   allContacts: [],
   selectedSms: null,
@@ -106,7 +106,7 @@ devtools(persist((set,get) => ({
   username:'User',
   password: '',
   setLogin: (phonenumber, password) => set({phonenumber: phonenumber, password:password }),
-}),persistConfig),devtoolsConfig)
+}),persistConfig)
   
 
 

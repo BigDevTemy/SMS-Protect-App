@@ -36,8 +36,12 @@ export function SignInScreen({navigation}){
         }
         setIsLoading(true)
         setLogin(phoneNumber,password)
+        setPasswordValue(null)
+        setPhonenumber(null)
+        
         setTimeout(()=>{
                 setIsLoading(false)
+                
                 navigation.navigate('Home')
         },3000)
         

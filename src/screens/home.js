@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {StatusBar} from 'react-native'
+import {StatusBar,LogBox} from 'react-native'
 import {
   Icon,
   Input,
@@ -116,16 +116,16 @@ export function HomeScreen({navigation}) {
       "change",
       handleAppStateChange
     );
-    return () => {
-      subscription.remove();
-    };
+    // return () => {
+    //   subscription.remove();
+    // };
   }, []);
 
   return (
 
 
     <ScrollView w="100%">
-      <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "transparent" translucent = {true}/>
+      <StatusBar barStyle = "light-content" hidden = {false} backgroundColor = "transparent" translucent = {true}/>
       <View style={{display:'flex',flexDirection:'row',width:'100%',height:50,justifyContent:'flex-start',alignItems:'center',paddingLeft:5,backgroundColor:'#fff',marginTop: StatusBar.currentHeight || 0}}>
           <Pressable onPress={()=>{handleOpenDrawer()}}>
             <Icon
@@ -137,6 +137,14 @@ export function HomeScreen({navigation}) {
           </Pressable>
 
           <Text style={{fontSize:20,fontWeight:'bold'}}>Messages</Text>
+          <Pressable style={{flex:1,width:'100%',display:'flex',flexDirection:'row',justifyContent:'flex-end'}}>
+            <Icon
+                m="2"
+                size="6"
+                color="gray.400"
+                  as={<MaterialIcons name="feedback" />}
+            />
+          </Pressable>
       </View>
       <Input
         placeholder="Search Messages"

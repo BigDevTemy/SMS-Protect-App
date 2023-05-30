@@ -9,14 +9,21 @@ import {
   ThreeDotsIcon,
   Box,
   Pressable,
+  
 } from "native-base";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import useStore from "./store";
 import { HomeScreen } from "./src/screens/home.js";
 import { MessageScreen } from "./src/screens/message.js";
+import { CustomDrawer } from "./src/screens/customdrawer.js";
+import {StartScreen} from './src/screens/start.js'
+import { SignInScreen } from "./src/screens/auth/signin";
+import { SignUpInScreen } from "./src/screens/auth/signup";
 import { postSMS } from "./src/utils";
 import { storage } from "./storage";
+
 import {
   View,
   Text,
@@ -37,6 +44,44 @@ AppRegistry.registerHeadlessTask(
 );
 
 const Stack = createNativeStackNavigator();
+const Drawer = createDrawerNavigator()
+
+const StackNavigation  = ()=>{
+        return <Stack.Navigator>
+          <Stack.Screen
+            name="Start"
+            component={StartScreen}
+            options={{headerShown:false}}
+            
+          />
+          <Stack.Screen
+            name="SignIn"
+            component={SignInScreen}
+            options={{headerShown:false}}
+            
+          />
+          <Stack.Screen
+            name="SignUp"
+            component={SignUpInScreen}
+            options={{headerShown:false}}
+            
+          />
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{headerShown:false}}
+            
+          />
+          <Stack.Screen
+            name="Message"
+            component={MessageScreen}
+            options={{ headerTitle: (props) => <LogoTitle {...props} /> }}
+          />
+        </Stack.Navigator>
+}
+
+
+
 
 // Define the config
 const config = {
@@ -129,6 +174,8 @@ export default function App() {
     setHasSmsPermission(hasPermissions);
   };
 
+  
+
   useEffect(() => {
     const doInit = async () => {
       const hasPermissions = await checkSMSPermissions();
@@ -200,21 +247,22 @@ export default function App() {
     );
   }
 
+  const CustomDrawerContent = () => {
+    return (
+      <CustomDrawer/>
+    )
+      
+  };
+  console.disableYellowBox = true;
   return (
+      
     <NavigationContainer>
+       
       <NativeBaseProvider>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{ title: "Messages" }}
-          />
-          <Stack.Screen
-            name="Message"
-            component={MessageScreen}
-            options={{ headerTitle: (props) => <LogoTitle {...props} /> }}
-          />
-        </Stack.Navigator>
+        <Drawer.Navigator drawerContent={CustomDrawerContent}  screenOptions={{ headerShown: false,drawerType:"slide" }} >
+            <Drawer.Screen name="Homescreen" component={StackNavigation} />
+        </Drawer.Navigator>
+       
       </NativeBaseProvider>
     </NavigationContainer>
   );

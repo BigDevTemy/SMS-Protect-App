@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import {StatusBar} from 'react-native'
 import {
   Icon,
   Input,
@@ -8,6 +9,9 @@ import {
   VStack,
   Spinner,
   ScrollView,
+  View,
+  Text,
+   Pressable
 } from "native-base";
 import SmsAndroid from "react-native-get-sms-android";
 import useStore from "../../store";
@@ -18,12 +22,13 @@ import { storage } from "../../storage";
 import { postSMS } from "../utils";
 import { AppState } from "react-native";
 import { ListItem } from "./listItem";
-
-export function HomeScreen() {
+import { s } from "../app.styles"
+export function HomeScreen({navigation}) {
   const [value, setValue] = React.useState("");
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [newupdate, setNew] = useState(false);
+
   const smsList = useStore((state) => state.smslist);
   const listSms = useStore((state) => state.listSms);
   const newupdateg = useStore((state) => state.newupdate);
@@ -91,6 +96,11 @@ export function HomeScreen() {
     }
   };
 
+  const handleOpenDrawer=()=>{
+          console.log('Drawer')
+          navigation.openDrawer()
+  }
+
   useEffect(() => {
     startReadSMS();
   }, []);
@@ -112,7 +122,22 @@ export function HomeScreen() {
   }, []);
 
   return (
+
+
     <ScrollView w="100%">
+      <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "transparent" translucent = {true}/>
+      <View style={{display:'flex',flexDirection:'row',width:'100%',height:50,justifyContent:'flex-start',alignItems:'center',paddingLeft:5,backgroundColor:'#fff',marginTop: StatusBar.currentHeight || 0}}>
+          <Pressable onPress={()=>{handleOpenDrawer()}}>
+            <Icon
+              m="2"
+              size="6"
+              color="gray.400"
+                as={<MaterialIcons name="menu" />}
+           />
+          </Pressable>
+
+          <Text style={{fontSize:20,fontWeight:'bold'}}>Messages</Text>
+      </View>
       <Input
         placeholder="Search Messages"
         value={value}
@@ -159,5 +184,6 @@ export function HomeScreen() {
       )}
       <Request />
     </ScrollView>
+
   );
 }

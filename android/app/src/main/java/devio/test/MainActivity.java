@@ -1,3 +1,6 @@
+import expo.modules.devmenu.react.DevMenuAwareReactActivity;
+import android.content.Intent;
+import expo.modules.devlauncher.DevLauncherController;
 package devio.test;
 
 import android.os.Bundle;
@@ -10,7 +13,16 @@ import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 import expo.modules.splashscreen.singletons.SplashScreen;
 import expo.modules.splashscreen.SplashScreenImageResizeMode;
 
-public class MainActivity extends ReactActivity {
+public class MainActivity extends DevMenuAwareReactActivity {
+
+  @Override
+  public void onNewIntent(Intent intent) {
+    if (DevLauncherController.tryToHandleIntent(this, intent)) {
+      return;
+    }
+    super.onNewIntent(intent);
+  }
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     // Set the theme to AppTheme BEFORE onCreate to support 

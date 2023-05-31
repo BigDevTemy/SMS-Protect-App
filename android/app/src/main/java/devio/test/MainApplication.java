@@ -1,6 +1,6 @@
 import expo.modules.updates.UpdatesDevLauncherController;
 import expo.modules.devlauncher.DevLauncherController;
-package devio.test;
+// package devio.test;
 
 import android.app.Application;
 import android.content.Context;

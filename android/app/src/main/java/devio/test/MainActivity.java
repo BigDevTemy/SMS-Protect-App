@@ -1,7 +1,7 @@
 import expo.modules.devmenu.react.DevMenuAwareReactActivity;
 import android.content.Intent;
 import expo.modules.devlauncher.DevLauncherController;
-package devio.test;
+// package devio.test;
 
 import android.os.Bundle;
 

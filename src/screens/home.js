@@ -126,7 +126,7 @@ export function HomeScreen({navigation}) {
 
     <ScrollView w="100%">
       <StatusBar barStyle = "light-content" hidden = {false} backgroundColor = "transparent" translucent = {true}/>
-      <View style={{display:'flex',flexDirection:'row',width:'100%',height:50,justifyContent:'flex-start',alignItems:'center',paddingLeft:5,backgroundColor:'#fff',marginTop: StatusBar.currentHeight || 0}}>
+      <View style={{display:'flex',flexDirection:'row',width:'100%',height:50,justifyContent:'flex-start',alignItems:'center',paddingLeft:5,backgroundColor:'#000',marginTop: StatusBar.currentHeight || 0}}>
           <Pressable onPress={()=>{handleOpenDrawer()}}>
             <Icon
               m="2"
@@ -136,7 +136,7 @@ export function HomeScreen({navigation}) {
            />
           </Pressable>
 
-          <Text style={{fontSize:20,fontWeight:'bold'}}>Messages</Text>
+          <Text style={{fontSize:20,fontWeight:'bold',color:'#fff'}}>Messages</Text>
           <Pressable style={{flex:1,width:'100%',display:'flex',flexDirection:'row',justifyContent:'flex-end'}}>
             <Icon
                 m="2"

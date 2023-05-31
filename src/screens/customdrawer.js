@@ -230,8 +230,7 @@ export function CustomDrawer() {
 
 const styles = StyleSheet.create({
     table: {
-      borderWidth: 1,
-      borderColor: '#000',
+      
       borderRadius: 4,
       paddingBottom: 20,
       height:'100%',
@@ -254,9 +253,8 @@ const styles = StyleSheet.create({
     tableCell: {
       flex: 1,
       padding: 0,
-     
-      borderWidth: 1,
-      borderColor: '#000',
+    
+    
       alignItems: 'flex-start',
       display:"flex",
       flexDirection:'column',

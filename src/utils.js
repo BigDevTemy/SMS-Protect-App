@@ -78,3 +78,22 @@ export const returnShade = (id = 0) => {
   if (id % 4 === 2) return "secondary.400";
   if (id % 4 === 3) return "purple.400";
 };
+
+export const POSTFEEDBACK = async (data)=>{
+  const reqData ={
+    message:data.message,
+    class:data.class,
+    actual_class:data.actual_class
+  }
+  const responsed = await axios
+    .post(
+      `http://34.78.15.123:5000/log-message`,
+      reqData
+    )
+    .catch((err) => {
+      console.log("resd2 err", err);
+      return { error: true };
+    });
+
+  console.log({ responsed });
+}

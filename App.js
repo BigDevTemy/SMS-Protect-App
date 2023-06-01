@@ -95,6 +95,7 @@ export const theme = extendTheme({ config });
 function LogoTitle(pp) {
   const selectedSms = useStore((state) => state.selectedSms);
   const setSms = useStore((state) => state.setSms);
+  // console.log("selected",selectedSms.body)
   const toast = useToast();
   return (
     <Box
@@ -157,6 +158,14 @@ function LogoTitle(pp) {
             }}
           >
             Check for Spam
+          </Menu.Item>
+          <Menu.Item
+            onPress={async () => {
+              const sms = await postSMS([selectedSms]);
+              
+            }}
+          >
+            Send Feedback
           </Menu.Item>
         </Menu>
       </Flex>
